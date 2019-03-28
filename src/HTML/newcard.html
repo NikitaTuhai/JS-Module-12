@@ -1,0 +1,14 @@
+<div class="cards"></div>
+
+<template id="new-card">
+  {{#each URL}}
+  <div class="card">
+    <form class="del">
+      <span>
+        URL:<a href="{{ this }}">{{ this }}</a></span
+      >
+      <button class="del-btn">Удалить</button>
+    </form>
+  </div>
+  {{/each}}
+</template>
