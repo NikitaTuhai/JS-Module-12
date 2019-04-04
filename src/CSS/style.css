@@ -1,9 +1,12 @@
 .addcard {
   margin: auto;
-  width: 300px;
+  width: 500px;
   padding: 20px;
   border: 2px solid #00bdab;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+#url-text {
+  width: 500px;
 }
 .btn,
 .del-btn {
@@ -24,12 +27,12 @@
   opacity: 1;
   cursor: pointer;
 }
-.del-btn{
+.del-btn {
   background-color: #0ed818;
 }
 .card {
   margin: auto;
-  width: 300px;
+  width: 500px;
   padding: 20px;
   border: 2px solid #0ed818;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);

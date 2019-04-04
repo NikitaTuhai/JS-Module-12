@@ -1,14 +1,11 @@
 <div class="cards"></div>
 
 <template id="new-card">
-  {{#each URL}}
-  <div class="card">
-    <form class="del">
-      <span>
-        URL:<a href="{{ this }}">{{ this }}</a></span
-      >
-      <button class="del-btn">Удалить</button>
-    </form>
-  </div>
-  {{/each}}
+  <section class="card del">
+    URL:<a class="card-url" href="{{ url }}"
+      ><p>{{ url }}</p></a
+    >
+
+    <button class="del-btn">Удалить</button>
+  </section>
 </template>

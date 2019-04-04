@@ -1,56 +1,67 @@
-"use strict";
+'use strict';
 
-var cardData = {
-  URL: []
-};
-var source = document.querySelector("#new-card").innerHTML.trim();
-var template = Handlebars.compile(source); //====================================================================
+var urlList = getUrlFromLocalStorage();
+var form = document.querySelector('.card-form');
+var input = document.querySelector('#url-text');
+var cardSection = document.querySelector('.cards');
+drawFavorites();
 
-var addCardForm = document.querySelector(".card-form");
-addCardForm.addEventListener("submit", handleAdd);
-var cardList = document.querySelector(".cards");
-cardList.addEventListener("submit", handleDel);
+function drawFavorites() {
+  var template = document.querySelector('#new-card').innerHTML.trim();
+  var compileTemplate = Handlebars.compile(template);
+  var cardMarkup = urlList.reduce(function (acc, elem) {
+    return acc + compileTemplate(elem);
+  }, '');
+  cardSection.insertAdjacentHTML('afterbegin', cardMarkup);
+}
 
-function handleAdd(e) {
-  e.preventDefault();
-  var inputValue = document.querySelector("#url-text").value;
-  var validURL = cardData.URL.every(function (x) {
-    return inputValue !== x;
-  });
-  if (inputValue === "") return;
+form.addEventListener('submit', onUrlAdding);
+cardSection.addEventListener('click', onDeleteClick);
 
-  if (validURL) {
-    cardData.URL.unshift(inputValue);
-    var markup = template(cardData);
-    cardList.innerHTML = markup;
-    localStorage.setItem("list", JSON.stringify(cardData));
-  } else {
-    alert("Такой URL уже есть!");
+function onUrlAdding(event) {
+  event.preventDefault();
+  var urlValidation = /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
+
+  if (urlValidation.test(input.value) && !urlList.find(function (elem) {
+    return elem.url === input.value;
+  })) {
+    cardSection.innerHTML = '';
+    urlList.unshift({
+      url: input.value
+    });
+    setUrlToLocalStorage(urlList);
+    drawFavorites();
+  } else if (urlList.find(function (elem) {
+    return elem.url === input.value;
+  })) {
+    alert("Такая закладка уже существует!");
+  } else if (!urlValidation.test(input.value)) {
+    alert("Не прошло валидацию!");
   }
 
-  addCardForm.reset();
-} //=====================================================================
-
-
-function handleDel(e) {
-  e.preventDefault();
-  var cardValueUrl = e.target.firstElementChild.firstElementChild.innerHTML;
-  e.target.parentNode.remove(); //  cardData.URL.pop(cardValueUrl);
-  // cardData.URL.splice(cardValueUrl,1);
-
-  localStorage.setItem("list", JSON.stringify(cardData));
-  console.log(cardValueUrl);
-  console.log(cardData.URL);
+  form.reset();
 }
 
-window.addEventListener("DOMContentLoaded", getItemLC);
+;
 
-function getItemLC() {
-  cardData = JSON.parse(localStorage.getItem("list"));
-  createCardList(cardData);
+function onDeleteClick(event) {
+  if (event.target.nodeName === "BUTTON") {
+    var cardForDelete = event.target.parentNode;
+    var cardForDeleteUrl = cardForDelete.querySelector('.card-url').textContent;
+    var indexOfDeletedUrl = urlList.indexOf(urlList.find(function (el) {
+      return el.url === cardForDeleteUrl;
+    }));
+    cardForDelete.remove();
+    urlList.splice([indexOfDeletedUrl], 1);
+    setUrlToLocalStorage(urlList);
+  }
 }
 
-function createCardList(arr) {
-  var markup = template(arr);
-  cardList.innerHTML = markup;
+function setUrlToLocalStorage(array) {
+  localStorage.setItem('cards', JSON.stringify(array));
+}
+
+function getUrlFromLocalStorage() {
+  var data = localStorage.getItem('cards');
+  return data ? JSON.parse(data) : [];
 }

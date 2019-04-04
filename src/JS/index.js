@@ -1,60 +1,56 @@
-"use strict";
 
-let cardData = {
-  URL: []
-};
-const source = document.querySelector("#new-card").innerHTML.trim();
-const template = Handlebars.compile(source);
-//====================================================================
+'use strict'
 
-const addCardForm = document.querySelector(".card-form");
-addCardForm.addEventListener("submit", handleAdd);
+let urlList = getUrlFromLocalStorage();
 
-const cardList = document.querySelector(".cards");
-cardList.addEventListener("submit", handleDel);
+let form = document.querySelector('.card-form');
+let input = document.querySelector('#url-text');
+let cardSection = document.querySelector('.cards');
+drawFavorites()
 
-function handleAdd(e) {
-  e.preventDefault();
-  const inputValue = document.querySelector("#url-text").value;
-  const validURL = cardData.URL.every(x => inputValue !== x);
+function drawFavorites() {
+  let template = document.querySelector('#new-card').innerHTML.trim();
+  let compileTemplate = Handlebars.compile(template);
+  let cardMarkup = urlList.reduce((acc, elem) => acc + compileTemplate(elem), '');
+  cardSection.insertAdjacentHTML('afterbegin', cardMarkup);
+}
 
-  if (inputValue === "") return;
-  if (validURL) {
-    cardData.URL.unshift(inputValue);
-    const markup = template(cardData);
-    cardList.innerHTML = markup;
 
-    localStorage.setItem("list", JSON.stringify(cardData));
-  } else {
-    alert("Такой URL уже есть!");
+
+form.addEventListener('submit', onUrlAdding);
+cardSection.addEventListener('click', onDeleteClick);
+
+function onUrlAdding(event) {
+  event.preventDefault();
+  let urlValidation = /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
+  if (urlValidation.test(input.value) && !urlList.find(elem => elem.url === input.value)) {
+    cardSection.innerHTML = '';
+    urlList.unshift({url: input.value});
+    setUrlToLocalStorage(urlList);
+    drawFavorites();
+  } else if (urlList.find(elem => elem.url === input.value)) {
+    alert("Такая закладка уже существует!");
+  } else if (!urlValidation.test(input.value)) {
+    alert("Не прошло валидацию!")
   }
+  form.reset();
+};
 
-  addCardForm.reset();
-} //=====================================================================
-
-function handleDel(e) {
-  e.preventDefault();
-
-  const cardValueUrl = e.target.firstElementChild.firstElementChild.innerHTML;
-  e.target.parentNode.remove();
-  //  cardData.URL.pop(cardValueUrl);
-
-  // cardData.URL.splice(cardValueUrl,1);
-
-  localStorage.setItem("list", JSON.stringify(cardData));
-
-  console.log(cardValueUrl);
-  console.log(cardData.URL);
+function onDeleteClick(event) {
+  if (event.target.nodeName === "BUTTON") {
+    let cardForDelete = event.target.parentNode;
+    let cardForDeleteUrl = cardForDelete.querySelector('.card-url').textContent;
+    let indexOfDeletedUrl = urlList.indexOf(urlList.find(el => el.url === cardForDeleteUrl));
+    cardForDelete.remove();
+    urlList.splice([indexOfDeletedUrl], 1);
+    setUrlToLocalStorage(urlList);
+  }
 }
 
-window.addEventListener("DOMContentLoaded", getItemLC);
-
-function getItemLC() {
-  cardData = JSON.parse(localStorage.getItem("list"));
-  createCardList(cardData);
+function setUrlToLocalStorage(array) {
+  localStorage.setItem('cards', JSON.stringify(array));
 }
-
-function createCardList(arr) {
-  const markup = template(arr);
-  cardList.innerHTML = markup;
+function getUrlFromLocalStorage() {
+  let data = localStorage.getItem('cards');
+  return data ? JSON.parse(data) : [];
 }
